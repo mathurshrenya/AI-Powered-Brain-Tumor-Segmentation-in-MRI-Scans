@@ -1,128 +1,119 @@
 """
-Visualization utilities for MRI scans and segmentation results.
+Visualization utilities for brain tumor segmentation.
 """
 import numpy as np
 import matplotlib.pyplot as plt
-from typing import List, Optional, Tuple
+from typing import Tuple
 
-def plot_scan_with_mask(scan: np.ndarray,
-                       mask: Optional[np.ndarray] = None,
-                       slice_idx: Optional[int] = None,
-                       alpha: float = 0.3,
-                       cmap: str = 'viridis') -> None:
+def plot_segmentation(image: np.ndarray,
+                     true_mask: np.ndarray,
+                     pred_mask: np.ndarray,
+                     alpha: float = 0.3) -> plt.Figure:
     """
-    Plot a single slice of an MRI scan with optional segmentation mask overlay.
+    Plot image with true and predicted segmentation masks.
     
     Args:
-        scan: 3D MRI scan
-        mask: Optional binary segmentation mask
-        slice_idx: Slice index (if None, use middle slice)
-        alpha: Transparency of the mask overlay
-        cmap: Colormap for the mask
-    """
-    if slice_idx is None:
-        slice_idx = scan.shape[-1] // 2
+        image: Input MRI slice (H, W)
+        true_mask: Ground truth segmentation mask (H, W)
+        pred_mask: Predicted segmentation mask (H, W)
+        alpha: Transparency for segmentation overlay
         
-    plt.figure(figsize=(10, 5))
+    Returns:
+        Matplotlib figure
+    """
+    # Create figure with subplots
+    fig, (ax1, ax2, ax3) = plt.subplots(1, 3, figsize=(15, 5))
     
-    # Plot original scan
-    plt.subplot(1, 2, 1)
-    plt.imshow(scan[:, :, slice_idx], cmap='gray')
-    plt.title('Original Scan')
-    plt.axis('off')
+    # Plot original image
+    ax1.imshow(image, cmap='gray')
+    ax1.set_title('MRI Scan')
+    ax1.axis('off')
     
-    # Plot with mask overlay if provided
-    plt.subplot(1, 2, 2)
-    plt.imshow(scan[:, :, slice_idx], cmap='gray')
-    if mask is not None:
-        plt.imshow(mask[:, :, slice_idx],
-                  alpha=alpha,
-                  cmap=cmap)
-    plt.title('Scan with Segmentation')
-    plt.axis('off')
+    # Plot true segmentation
+    ax2.imshow(image, cmap='gray')
+    mask = np.ma.masked_where(true_mask == 0, true_mask)
+    ax2.imshow(mask, cmap='Set1', alpha=alpha)
+    ax2.set_title('True Segmentation')
+    ax2.axis('off')
+    
+    # Plot predicted segmentation
+    ax3.imshow(image, cmap='gray')
+    mask = np.ma.masked_where(pred_mask == 0, pred_mask)
+    ax3.imshow(mask, cmap='Set1', alpha=alpha)
+    ax3.set_title('Predicted Segmentation')
+    ax3.axis('off')
     
     plt.tight_layout()
-    plt.show()
+    return fig
 
-def plot_modalities(modalities: np.ndarray,
-                   slice_idx: Optional[int] = None,
-                   titles: Optional[List[str]] = None) -> None:
+def plot_training_progress(train_losses: list,
+                         val_losses: list,
+                         metrics: dict,
+                         save_path: str) -> None:
     """
-    Plot different MRI modalities side by side.
+    Plot training progress.
     
     Args:
-        modalities: Array of shape (n_modalities, H, W, D)
-        slice_idx: Slice index (if None, use middle slice)
-        titles: List of titles for each modality
+        train_losses: List of training losses
+        val_losses: List of validation losses
+        metrics: Dictionary of evaluation metrics
+        save_path: Path to save the plot
     """
-    if slice_idx is None:
-        slice_idx = modalities.shape[-1] // 2
-        
-    if titles is None:
-        titles = [f'Modality {i+1}' for i in range(modalities.shape[0])]
-        
-    n_modalities = modalities.shape[0]
-    fig, axes = plt.subplots(1, n_modalities, figsize=(4*n_modalities, 4))
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 4))
     
-    for i in range(n_modalities):
-        axes[i].imshow(modalities[i, :, :, slice_idx], cmap='gray')
-        axes[i].set_title(titles[i])
-        axes[i].axis('off')
+    # Plot losses
+    epochs = range(1, len(train_losses) + 1)
+    ax1.plot(epochs, train_losses, 'b-', label='Training Loss')
+    ax1.plot(epochs, val_losses, 'r-', label='Validation Loss')
+    ax1.set_title('Training and Validation Loss')
+    ax1.set_xlabel('Epoch')
+    ax1.set_ylabel('Loss')
+    ax1.legend()
+    ax1.grid(True)
+    
+    # Plot metrics
+    metric_names = list(metrics.keys())
+    metric_values = [metrics[name] for name in metric_names]
+    ax2.bar(metric_names, metric_values)
+    ax2.set_title('Evaluation Metrics')
+    ax2.set_ylabel('Score')
+    plt.xticks(rotation=45)
     
     plt.tight_layout()
-    plt.show()
+    plt.savefig(save_path)
+    plt.close()
 
-def plot_prediction_comparison(scan: np.ndarray,
-                            true_mask: np.ndarray,
-                            pred_mask: np.ndarray,
-                            slice_idx: Optional[int] = None) -> None:
+def create_montage(images: list,
+                  masks: list,
+                  n_rows: int,
+                  n_cols: int,
+                  figsize: Tuple[int, int] = (15, 10)) -> plt.Figure:
     """
-    Plot original scan with ground truth and predicted segmentation masks.
+    Create a montage of images with segmentation masks.
     
     Args:
-        scan: 3D MRI scan
-        true_mask: Ground truth segmentation mask
-        pred_mask: Predicted segmentation mask
-        slice_idx: Slice index (if None, use middle slice)
-    """
-    if slice_idx is None:
-        slice_idx = scan.shape[-1] // 2
+        images: List of input images
+        masks: List of segmentation masks
+        n_rows: Number of rows in montage
+        n_cols: Number of columns in montage
+        figsize: Figure size
         
-    fig, axes = plt.subplots(1, 3, figsize=(15, 5))
+    Returns:
+        Matplotlib figure
+    """
+    fig, axes = plt.subplots(n_rows, n_cols, figsize=figsize)
+    axes = axes.ravel()
     
-    # Original scan
-    axes[0].imshow(scan[:, :, slice_idx], cmap='gray')
-    axes[0].set_title('Original Scan')
-    axes[0].axis('off')
+    for idx, (img, mask) in enumerate(zip(images, masks)):
+        if idx < len(axes):
+            axes[idx].imshow(img, cmap='gray')
+            mask = np.ma.masked_where(mask == 0, mask)
+            axes[idx].imshow(mask, cmap='Set1', alpha=0.3)
+            axes[idx].axis('off')
     
-    # Ground truth
-    axes[1].imshow(scan[:, :, slice_idx], cmap='gray')
-    axes[1].imshow(true_mask[:, :, slice_idx],
-                  alpha=0.3,
-                  cmap='viridis')
-    axes[1].set_title('Ground Truth')
-    axes[1].axis('off')
-    
-    # Prediction
-    axes[2].imshow(scan[:, :, slice_idx], cmap='gray')
-    axes[2].imshow(pred_mask[:, :, slice_idx],
-                  alpha=0.3,
-                  cmap='viridis')
-    axes[2].set_title('Prediction')
-    axes[2].axis('off')
+    # Turn off any unused subplots
+    for idx in range(len(images), len(axes)):
+        axes[idx].axis('off')
     
     plt.tight_layout()
-    plt.show()
-
-def save_visualization(fig: plt.Figure,
-                     path: str,
-                     dpi: int = 300) -> None:
-    """
-    Save matplotlib figure to file.
-    
-    Args:
-        fig: Matplotlib figure
-        path: Save path
-        dpi: Resolution
-    """
-    fig.savefig(path, dpi=dpi, bbox_inches='tight') 
+    return fig 

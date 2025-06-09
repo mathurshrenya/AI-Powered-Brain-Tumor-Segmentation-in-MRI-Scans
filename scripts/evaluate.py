@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Evaluate trained brain tumor segmentation model.
+Evaluate trained model on test data.
 """
 import os
 import argparse
@@ -8,26 +8,22 @@ from pathlib import Path
 import torch
 import numpy as np
 from tqdm import tqdm
-import sys
-import json
 import matplotlib.pyplot as plt
+import sys
 
 # Add src to path
 sys.path.append(str(Path(__file__).parent.parent))
 
 from src.model import get_model, load_model
 from src.metrics import evaluate_prediction
-from src.visualization import (
-    plot_prediction_comparison,
-    save_visualization
-)
+from src.visualization import plot_segmentation
 
 def parse_args():
     parser = argparse.ArgumentParser(description='Evaluate segmentation model')
     parser.add_argument('--data-dir',
                       type=str,
                       required=True,
-                      help='Path to preprocessed test data directory')
+                      help='Path to preprocessed data directory')
     parser.add_argument('--model-path',
                       type=str,
                       required=True,
@@ -40,35 +36,43 @@ def parse_args():
                       type=str,
                       default='cuda' if torch.cuda.is_available() else 'cpu',
                       help='Device to use')
-    parser.add_argument('--batch-size',
-                      type=int,
-                      default=4,
-                      help='Batch size')
     return parser.parse_args()
 
 def load_test_data(data_dir):
     """Load test data."""
     modalities = []
     segmentations = []
-    case_ids = []
     
     for file in os.listdir(data_dir):
         if file.endswith('_modalities.npy'):
             case_id = file.replace('_modalities.npy', '')
             mod = np.load(os.path.join(data_dir, file))
             seg = np.load(os.path.join(data_dir, f'{case_id}_segmentation.npy'))
+            
+            # Add channel dimension to segmentation
+            seg = np.expand_dims(seg, axis=0)
+            
             modalities.append(mod)
             segmentations.append(seg)
-            case_ids.append(case_id)
     
-    return np.stack(modalities), np.stack(segmentations), case_ids
+    # Use last case as test data
+    X_test = modalities[-1:]
+    y_test = segmentations[-1:]
+    
+    return np.stack(X_test), np.stack(y_test)
+
+def save_results(metrics, output_dir):
+    """Save evaluation metrics."""
+    output_dir = Path(output_dir)
+    output_dir.mkdir(parents=True, exist_ok=True)
+    
+    # Save metrics
+    with open(output_dir / 'metrics.txt', 'w') as f:
+        for metric_name, value in metrics.items():
+            f.write(f'{metric_name}: {value:.4f}\n')
 
 def main():
     args = parse_args()
-    
-    # Create output directory
-    output_dir = Path(args.output_dir)
-    output_dir.mkdir(parents=True, exist_ok=True)
     
     # Load model
     model = get_model(device=args.device)
@@ -77,51 +81,53 @@ def main():
     
     # Load test data
     print('Loading test data...')
-    X_test, y_test, case_ids = load_test_data(args.data_dir)
+    X_test, y_test = load_test_data(args.data_dir)
     
-    # Evaluate each case
-    results = {}
+    # Create output directory
+    output_dir = Path(args.output_dir)
+    output_dir.mkdir(parents=True, exist_ok=True)
     
     print('Evaluating...')
+    all_metrics = []
+    
     with torch.no_grad():
-        for i, (x, y, case_id) in enumerate(tqdm(zip(X_test, y_test, case_ids))):
-            # Prepare input
-            x = torch.from_numpy(x).unsqueeze(0).to(args.device).float()
+        for i, (X, y) in enumerate(tqdm(zip(X_test, y_test))):
+            # Convert to tensor
+            X = torch.from_numpy(X).unsqueeze(0).float().to(args.device)
             
             # Get prediction
-            pred = model(x)
-            pred = torch.argmax(pred, dim=1).cpu().numpy()[0]
+            pred = model(X)
+            pred = torch.softmax(pred, dim=1)
+            pred = pred.cpu().numpy()
             
             # Calculate metrics
-            metrics = evaluate_prediction(y, pred)
-            results[case_id] = metrics
+            metrics = evaluate_prediction(pred[0], y)  # Remove batch dimension from pred only
+            all_metrics.append(metrics)
             
-            # Save visualization
-            fig = plt.figure(figsize=(15, 5))
-            plot_prediction_comparison(x[0,0].cpu().numpy(), y, pred)
-            save_visualization(fig, output_dir / f'{case_id}_prediction.png')
+            # Save example visualization
+            mid_slice = y.shape[-1] // 2
+            fig = plot_segmentation(
+                image=X[0, 0, :, :, mid_slice].cpu().numpy(),
+                true_mask=y[0, :, :, mid_slice],
+                pred_mask=np.argmax(pred[0, :, :, :, mid_slice], axis=0)
+            )
+            plt.savefig(output_dir / f'example_{i}.png')
             plt.close()
     
-    # Calculate and save mean metrics
-    mean_metrics = {
-        'mean_dice': np.mean([r['mean_dice'] for r in results.values()]),
-        'mean_iou': np.mean([r['mean_iou'] for r in results.values()]),
-        'mean_precision': np.mean([r['mean_precision'] for r in results.values()]),
-        'mean_recall': np.mean([r['mean_recall'] for r in results.values()])
-    }
-    
-    results['mean'] = mean_metrics
+    # Calculate mean metrics
+    mean_metrics = {}
+    for metric in all_metrics[0].keys():
+        values = [m[metric] for m in all_metrics]
+        mean_metrics[metric] = np.mean(values)
     
     # Save results
-    with open(output_dir / 'evaluation_results.json', 'w') as f:
-        json.dump(results, f, indent=4)
+    save_results(mean_metrics, output_dir)
+    print('\nResults saved to:', output_dir)
     
     # Print summary
-    print('\nEvaluation Results:')
-    print(f"Mean Dice Score: {mean_metrics['mean_dice']:.4f}")
-    print(f"Mean IoU Score: {mean_metrics['mean_iou']:.4f}")
-    print(f"Mean Precision: {mean_metrics['mean_precision']:.4f}")
-    print(f"Mean Recall: {mean_metrics['mean_recall']:.4f}")
+    print('\nEvaluation metrics:')
+    for metric_name, value in mean_metrics.items():
+        print(f'{metric_name}: {value:.4f}')
 
 if __name__ == '__main__':
     main() 

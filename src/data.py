@@ -4,6 +4,8 @@ Data loading and preprocessing utilities for BraTS2021 dataset.
 import os
 import numpy as np
 import nibabel as nib
+import torch
+from torch.utils.data import Dataset, DataLoader
 from typing import Tuple, List, Optional
 from pathlib import Path
 
@@ -77,4 +79,75 @@ def save_preprocessed(save_dir: str,
     save_dir.mkdir(parents=True, exist_ok=True)
     
     np.save(save_dir / f"{case_id}_modalities.npy", modalities)
-    np.save(save_dir / f"{case_id}_segmentation.npy", segmentation) 
+    np.save(save_dir / f"{case_id}_segmentation.npy", segmentation)
+
+class BraTSDataset(Dataset):
+    """PyTorch Dataset for BraTS data."""
+    def __init__(self, data_dir: str, case_ids: List[str]):
+        self.data_dir = Path(data_dir)
+        self.case_ids = case_ids
+        
+    def __len__(self) -> int:
+        return len(self.case_ids)
+    
+    def __getitem__(self, idx: int) -> Tuple[torch.Tensor, torch.Tensor]:
+        case_id = self.case_ids[idx]
+        
+        # Load preprocessed data
+        modalities = np.load(self.data_dir / f"{case_id}_modalities.npy")
+        segmentation = np.load(self.data_dir / f"{case_id}_segmentation.npy")
+        
+        # Convert to torch tensors
+        modalities = torch.from_numpy(modalities).float()
+        segmentation = torch.from_numpy(segmentation).long().unsqueeze(0)
+        
+        return modalities, segmentation
+
+def load_data(data_dir: str,
+             batch_size: int = 2,
+             train_val_split: float = 0.8,
+             num_workers: int = 4) -> Tuple[DataLoader, DataLoader]:
+    """
+    Create train and validation/test data loaders.
+    
+    Args:
+        data_dir: Directory with preprocessed data
+        batch_size: Batch size for training
+        train_val_split: Fraction of data to use for training
+        num_workers: Number of worker processes for data loading
+        
+    Returns:
+        Tuple of (train_loader, val_loader)
+    """
+    # Get all case IDs
+    case_ids = [f.stem.replace('_modalities', '') 
+                for f in Path(data_dir).glob('*_modalities.npy')]
+    
+    # Split into train and val
+    np.random.shuffle(case_ids)
+    split_idx = int(len(case_ids) * train_val_split)
+    train_ids = case_ids[:split_idx]
+    val_ids = case_ids[split_idx:]
+    
+    # Create datasets
+    train_dataset = BraTSDataset(data_dir, train_ids)
+    val_dataset = BraTSDataset(data_dir, val_ids)
+    
+    # Create data loaders
+    train_loader = DataLoader(
+        train_dataset,
+        batch_size=batch_size,
+        shuffle=True,
+        num_workers=num_workers,
+        pin_memory=True
+    )
+    
+    val_loader = DataLoader(
+        val_dataset,
+        batch_size=batch_size,
+        shuffle=False,
+        num_workers=num_workers,
+        pin_memory=True
+    )
+    
+    return train_loader, val_loader 
