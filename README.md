@@ -5,14 +5,12 @@
 [![PyTorch](https://img.shields.io/badge/PyTorch-2.1%2B-red)](https://pytorch.org/)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT)
 
-## 🧠 Brain Tumor Segmentation with BraTS2021
+## Brain Tumor Segmentation with BraTS2021
 
 ### Overview
 This project implements a state-of-the-art deep learning pipeline for automated brain tumor segmentation using the BraTS 2021 dataset. The system utilizes advanced neural network architectures to accurately identify and segment brain tumors from multiple MRI modalities.
 
-![Project Banner](https://raw.githubusercontent.com/username/AI-Powered-Brain-Tumor-Segmentation-in-MRI-Scans/main/assets/banner.png)
-
-### 🌟 Key Features
+### Key Features
 - Multi-modal MRI processing (FLAIR, T1, T1ce, T2)
 - ResNet-based segmentation architecture
 - Comprehensive evaluation metrics
@@ -20,7 +18,7 @@ This project implements a state-of-the-art deep learning pipeline for automated 
 - Automated preprocessing pipeline
 - Visualization tools for results analysis
 
-### 📊 Project Structure
+### Project Structure
 ```
 .
 ├── brats-dataset-segmentation1.ipynb  # Main implementation notebook
@@ -33,7 +31,7 @@ This project implements a state-of-the-art deep learning pipeline for automated 
 └── results/                          # Output visualizations
 ```
 
-### 🔧 Contents
+### Contents
 1. **Setup & Imports**  
    - Load standard imaging and ML libraries (nilearn, nibabel, scikit-image, TensorFlow, PyTorch, Hugging Face transformers, etc.)
    - Define file paths and environment variables  
@@ -63,7 +61,7 @@ This project implements a state-of-the-art deep learning pipeline for automated 
    - `predict_single()` and `show_predictions()` to overlay model outputs on slices  
    - Qualitative inspection of segmentation performance  
 
-### 🚀 Getting Started
+### Getting Started
 
 1. **Clone the repository**
 ```bash
@@ -95,7 +93,7 @@ jupyter notebook brats-dataset-segmentation1.ipynb
 
 [Add visualization of results here]
 
-### 🤝 Contributing
+### Contributing
 Contributions are welcome! Please feel free to submit a Pull Request. For major changes, please open an issue first to discuss what you would like to change.
 
 1. Fork the Project
@@ -104,18 +102,18 @@ Contributions are welcome! Please feel free to submit a Pull Request. For major 
 4. Push to the Branch (`git push origin feature/AmazingFeature`)
 5. Open a Pull Request
 
-### 📝 License
+### License
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-### 🙏 Acknowledgments
+### Acknowledgments
 - BraTS 2021 dataset providers
 - The medical imaging research community
 - Contributors and maintainers of the used libraries
 
-### 📧 Contact
-Your Name - [@your_twitter](https://twitter.com/your_twitter)
+### Contact
+Shrenya Mathur - https://www.linkedin.com/in/shrenya-mathur/
 
-Project Link: [https://github.com/username/AI-Powered-Brain-Tumor-Segmentation-in-MRI-Scans](https://github.com/username/AI-Powered-Brain-Tumor-Segmentation-in-MRI-Scans)
+Project Link: [https://github.com/username/AI-Powered-Brain-Tumor-Segmentation-in-MRI-Scans](https://github.com/shrenyamathur/AI-Powered-Brain-Tumor-Segmentation-in-MRI-Scans)
 
 ## Prerequisites  
 - Python 3.7+  
