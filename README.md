@@ -1,11 +1,39 @@
-# AI-Powered-Brain-Tumor-Segmentation-in-MRI-Scans
+# AI-Powered Brain Tumor Segmentation in MRI Scans
 
-# Brain Tumor Segmentation with BraTS2021
+[![Python](https://img.shields.io/badge/Python-3.7%2B-blue)](https://www.python.org/)
+[![TensorFlow](https://img.shields.io/badge/TensorFlow-2.14%2B-orange)](https://www.tensorflow.org/)
+[![PyTorch](https://img.shields.io/badge/PyTorch-2.1%2B-red)](https://pytorch.org/)
+[![License](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT)
 
-## Overview  
-This Jupyter notebook implements a complete pipeline for brain tumor segmentation using the BraTS 2021 dataset. The notebook walks you through data extraction, preprocessing, exploration, model‐ready data generation, a ResNet-based segmentation architecture, and evaluation of segmentation metrics (IOU, Dice, precision, recall, specificity, etc.).
+## 🧠 Brain Tumor Segmentation with BraTS2021
 
-## Contents  
+### Overview
+This project implements a state-of-the-art deep learning pipeline for automated brain tumor segmentation using the BraTS 2021 dataset. The system utilizes advanced neural network architectures to accurately identify and segment brain tumors from multiple MRI modalities.
+
+![Project Banner](https://raw.githubusercontent.com/username/AI-Powered-Brain-Tumor-Segmentation-in-MRI-Scans/main/assets/banner.png)
+
+### 🌟 Key Features
+- Multi-modal MRI processing (FLAIR, T1, T1ce, T2)
+- ResNet-based segmentation architecture
+- Comprehensive evaluation metrics
+- Interactive Jupyter notebook implementation
+- Automated preprocessing pipeline
+- Visualization tools for results analysis
+
+### 📊 Project Structure
+```
+.
+├── brats-dataset-segmentation1.ipynb  # Main implementation notebook
+├── requirements.txt                   # Project dependencies
+├── README.md                          # Project documentation
+├── data/                             # Dataset directory (not tracked)
+│   ├── raw/                          # Raw BRATS2021 data
+│   └── processed/                    # Preprocessed data
+├── models/                           # Saved model checkpoints
+└── results/                          # Output visualizations
+```
+
+### 🔧 Contents
 1. **Setup & Imports**  
    - Load standard imaging and ML libraries (nilearn, nibabel, scikit-image, TensorFlow, PyTorch, Hugging Face transformers, etc.)
    - Define file paths and environment variables  
@@ -34,6 +62,60 @@ This Jupyter notebook implements a complete pipeline for brain tumor segmentatio
 8. **Prediction Visualization**  
    - `predict_single()` and `show_predictions()` to overlay model outputs on slices  
    - Qualitative inspection of segmentation performance  
+
+### 🚀 Getting Started
+
+1. **Clone the repository**
+```bash
+git clone https://github.com/username/AI-Powered-Brain-Tumor-Segmentation-in-MRI-Scans.git
+cd AI-Powered-Brain-Tumor-Segmentation-in-MRI-Scans
+```
+
+2. **Set up the environment**
+```bash
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+pip install -r requirements.txt
+```
+
+3. **Download the data**
+- Register at [BRATS 2021](https://www.med.upenn.edu/cbica/brats2021/)
+- Download and place the dataset in the `data/raw` directory
+
+4. **Run the notebook**
+```bash
+jupyter notebook brats-dataset-segmentation1.ipynb
+```
+
+### 📈 Results
+- Average Dice Score: X.XX
+- Mean IoU: X.XX
+- Precision: X.XX
+- Recall: X.XX
+
+[Add visualization of results here]
+
+### 🤝 Contributing
+Contributions are welcome! Please feel free to submit a Pull Request. For major changes, please open an issue first to discuss what you would like to change.
+
+1. Fork the Project
+2. Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your Changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the Branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
+
+### 📝 License
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+### 🙏 Acknowledgments
+- BraTS 2021 dataset providers
+- The medical imaging research community
+- Contributors and maintainers of the used libraries
+
+### 📧 Contact
+Your Name - [@your_twitter](https://twitter.com/your_twitter)
+
+Project Link: [https://github.com/username/AI-Powered-Brain-Tumor-Segmentation-in-MRI-Scans](https://github.com/username/AI-Powered-Brain-Tumor-Segmentation-in-MRI-Scans)
 
 ## Prerequisites  
 - Python 3.7+  

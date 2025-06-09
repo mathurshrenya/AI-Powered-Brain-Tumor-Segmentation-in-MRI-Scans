@@ -1,0 +1,24 @@
+name: brats-segmentation
+channels:
+  - pytorch
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.9
+  - pip
+  - numpy>=1.24.0
+  - pandas>=2.1.0
+  - matplotlib>=3.7.0
+  - pytorch>=2.1.0
+  - torchvision
+  - cudatoolkit=11.8
+  - nibabel>=5.1.0
+  - scikit-image>=0.21.0
+  - scikit-learn>=1.3.0
+  - tqdm>=4.66.0
+  - pillow>=10.0.0
+  - pip:
+    - nilearn>=0.10.1
+    - tensorflow>=2.14.0
+    - transformers>=4.35.0
+    - opencv-python>=4.8.0 
